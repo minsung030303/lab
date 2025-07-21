@@ -1,0 +1,215 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>찜한 상품</title>
+    <link rel="icon" href="{% static 'store/img/icon.png' %}" type="image/png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="{% static 'store/css/index-styles.css' %}" rel="stylesheet" />
+    <link href="{% static 'store/css/header-styles.css' %}" rel="stylesheet" />
+    <script src="{% static 'store/js/scripts.js' %}"></script>
+
+    <style>
+      .delete-btn {
+        border: none;
+        cursor: pointer;
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.2s, color 0.2s;
+      }
+      
+      .wishlist-grid input[type='checkbox'] {
+        transform: scale(1.2);
+        margin-bottom: 0.5rem;
+      }
+      
+      .wishlist-card {
+        position: relative;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+      }
+      
+      .wishlist-card label {
+        display: block;
+        cursor: pointer;
+      }
+      
+      .wishlist-card img {
+        width: 100%;
+        border-radius: 12px;
+        object-fit: cover;
+        margin-bottom: 0.6rem;
+      }
+      
+      .wishlist-card h4,
+      .wishlist-card p,
+      .wishlist-card strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      /* dropdown */
+      .user-dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: #fff;
+        min-width: 150px;
+        padding: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1;
+      }
+      
+      .dropdown-content button {
+        background-color: transparent;
+        border: none;
+        color: #333;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 5px 0;
+      }
+      
+      .user-icon {
+        width: 32px;
+        cursor: pointer;
+      }
+
+      .footer {
+        background-color: #1e1e1e;
+        color: #fff;
+        text-align: center;
+        padding: 1rem 0;
+        font-size: 0.75rem;
+        margin-top: 3rem;
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <a href="{% url 'index' %}" class="nav-logo"><img src="{% static 'store/img/mainlogo.png' %}" alt="mukamuka" /></a>
+      <div class="nav-icons">
+        <a href="{% url 'wishlist_page' %}"><img src="{% static 'store/img/like.png' %}" alt="Like" /></a>
+        <a href="#"><img src="{% static 'store/img/cart.png' %}" alt="Cart" /></a>
+
+        {% if user.is_authenticated %}
+          <div class="user-dropdown">
+            <img src="{% static 'store/img/user.png' %}" alt="User" class="user-icon" id="userIcon" />
+            <div class="dropdown-content" id="dropdownContent">
+              <p>{{ user.first_name }}님</p>
+              <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit">로그아웃</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}"><img src="{% static 'store/img/user.png' %}" alt="User" /></a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <div class="wishlist-wrapper" style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+      <h2>{{ user.first_name }}님의 찜한 상품</h2>
+
+      {% if wishlist_items %}
+        <form id="wishlist-form">
+          {% csrf_token %}
+          <button type="button" class="delete-btn" id="delete-selected">선택 삭제</button>
+
+          <div class="wishlist-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+            {% for item in wishlist_items %}
+              <div class="wishlist-card">
+                <label>
+                  <input type="checkbox" name="product_ids" value="{{ item.product.id }}" />
+                  <a href="{% url 'product_detail' item.product.id %}">
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" />
+                    <h4 style="font-size: 1rem;">{{ item.product.name|truncatechars:30 }}</h4>
+                    <p style="font-size: 0.9rem; color: #666;">{{ item.product.creator }}</p>
+                    <strong>{{ item.product.price|floatformat:0 }}원</strong>
+                  </a>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </form>
+      {% else %}
+        <p class="wishlist-empty" style="text-align:center; margin-top: 3rem; color: #888;">아직 찜한 상품이 없습니다.</p>
+      {% endif %}
+    </div>
+
+    <script>
+      // 선택 삭제 기능
+      document.getElementById('delete-selected').addEventListener('click', async () => {
+        const checkboxes = document.querySelectorAll('input[name="product_ids"]:checked')
+        if (checkboxes.length === 0) {
+          alert('삭제할 상품을 선택하세요.')
+          return
+        }
+      
+        const productIds = [...checkboxes].map((cb) => cb.value)
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+      
+        try {
+          const response = await fetch("{% url 'delete_selected_wishlist' %}", {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ product_ids: productIds })
+          })
+      
+          if (response.ok) {
+            location.reload() // 성공 시 새로고침
+          } else {
+            alert('삭제에 실패했습니다.')
+          }
+        } catch (err) {
+          console.error('요청 실패:', err)
+          alert('요청 중 문제가 발생했습니다.')
+        }
+      })
+      
+      // 드롭다운 메뉴
+      document.addEventListener('DOMContentLoaded', () => {
+        const icon = document.getElementById('userIcon')
+        const dropdown = document.getElementById('dropdownContent')
+      
+        if (icon && dropdown) {
+          icon.addEventListener('click', function (event) {
+            event.stopPropagation()
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block'
+          })
+      
+          document.addEventListener('click', function () {
+            dropdown.style.display = 'none'
+          })
+      
+          dropdown.addEventListener('click', function (event) {
+            event.stopPropagation()
+          })
+        }
+      })
+    </script>
+
+    <footer class="footer">
+      <p>© 2025 mukamuka. ALL RIGHTS RESERVED.</p>
+    </footer>
+  </body>
+</html>

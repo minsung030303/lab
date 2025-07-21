@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회원가입 | mukamuka</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="{% static 'store/img/icon.png' %}" type="image/png">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #fff;
+    }
+    .signup-container {
+      width: 100%;
+      max-width: 460px;
+      padding: 2rem;
+    }
+    .logo img {
+      text-align: center;
+      margin: 0 auto;
+      margin-bottom: 5rem;
+      height: 48px;
+      display: block;
+
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    .form-group label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .email-verify {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .email-verify input {
+      flex: 1;
+    }
+    .email-verify button {
+      padding: 0.8rem 1rem;
+      background-color: #eee;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .checkbox-group {
+      margin-top: 2rem;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      font-size: 0.95rem;
+    }
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+    .checkbox-group a {
+      font-size: 0.9rem;
+      margin-left: auto;
+      color: #555;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .form-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+    .form-buttons button {
+      flex: 1;
+      padding: 0.8rem;
+      margin: 0 0.25rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-prev {
+      background-color: #f2f2f2;
+    }
+    .btn-submit {
+      background-color: #ccc;
+      color: #fff;
+    }
+    @media (max-width: 768px) {
+      .signup-container {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+    <div class="signup-container">
+  <div class="logo">
+    <a href="/">
+      <img src="{% static 'store/img/mainlogo.png' %}" alt="mukamuka 로고">
+    </a>
+  </div>
+
+  <form id="signupForm" method="POST" onsubmit="return validateForm();">
+  {% csrf_token %}
+
+  {% if error %}
+    <p style="color:red; margin-bottom: 1rem;">{{ error }}</p>
+  {% endif %}
+
+  <!-- 👇 이메일 입력 -->
+<div class="form-group email-verify">
+  <input type="text" name="username" id="email" placeholder="이메일 주소를 입력해 주세요." required oninput="validateEmail()">
+  <button type="button" onclick="checkEmail()">이메일 중복확인</button>
+</div>
+<span id="email-error" style="color: red; font-size: 0.9rem; margin-bottom: 20px;"></span>
+
+<!-- 👇 비밀번호 입력 -->
+<div class="form-group">
+  <input type="password" name="password" id="password" placeholder="비밀번호를 입력해 주세요." required oninput="validatePassword()">
+  <small>영문, 숫자, 특수문자 포함 10자 이상</small>
+</div>
+<span id="password-error" style="color: red; font-size: 0.9rem;"></span>
+
+<!-- 👇 닉네임 입력 -->
+<div class="form-group">
+  <input type="text" name="nickname" id="nickname" placeholder="닉네임을 입력해 주세요." required oninput="validateNickname()">
+  <small>2~10자 / 특수문자, 자음·모음 단독 사용 불가</small>
+</div>
+<span id="nickname-error" style="color: red; font-size: 0.9rem;"></span>
+
+  <div class="form-buttons">
+    <button class="btn-submit" type="submit">가입 완료하기</button>
+  </div>
+</form>
+
+<script>
+function validateEmail() {
+  const email = document.getElementById('email').value.trim();
+  const error = document.getElementById('email-error');
+  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!pattern.test(email)) {
+    error.textContent = '유효한 이메일 주소를 입력해주세요.';
+    return false;
+  } else {
+    error.textContent = '';
+    return true;
+  }
+}
+
+function validatePassword() {
+  const password = document.getElementById('password').value;
+  const error = document.getElementById('password-error');
+  const pattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[\W_]).{10,}$/;
+
+  if (!pattern.test(password)) {
+    error.textContent = '영문, 숫자, 특수문자를 포함한 10자 이상이어야 합니다.';
+    return false;
+  } else {
+    error.textContent = '';
+    return true;
+  }
+}
+
+function validateNickname() {
+  const nickname = document.getElementById('nickname').value.trim();
+  const error = document.getElementById('nickname-error');
+
+  if (nickname.length < 2 || nickname.length > 10 || /[ㄱ-ㅎㅏ-ㅣ]/.test(nickname)) {
+    error.textContent = '닉네임은 2~10자이며 자음·모음 단독 사용은 불가능합니다.';
+    return false;
+  } else {
+    error.textContent = '';
+    return true;
+  }
+}
+
+function validateForm() {
+  const emailValid = validateEmail();
+  const passwordValid = validatePassword();
+  const nicknameValid = validateNickname();
+  return emailValid && passwordValid && nicknameValid;
+}
+
+function checkEmail() {
+  const email = document.getElementById('email').value.trim();
+  if (!validateEmail()) return;
+
+  fetch("{% url 'check_email' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRFToken": "{{ csrf_token }}",
+    },
+    body: `email=${email}`,
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.exists) {
+      alert("이미 등록된 이메일입니다.");
+    } else {
+      alert("사용 가능한 이메일입니다.");
+    }
+  });
+}
+</script>
+
+
+    <div class="checkbox-group">
+      <label><input type="checkbox"> 전체 동의</label>
+      <label><input type="checkbox"> 만 14세 이상입니다.</label>
+      <label><input type="checkbox"> 이용약관 동의 <a>보기</a></label>
+      <label><input type="checkbox"> 개인정보수집·이용 동의 <a>보기</a></label>
+    </div>
+  </form>
+</div>
+</body>
+</html>

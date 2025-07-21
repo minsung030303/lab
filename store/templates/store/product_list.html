@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>mukamuka - 상품</title>
+    <link rel="icon" href="{% static 'store/img/icon.png' %}" type="image/png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="{% static 'store/css/styles.css' %}" rel="stylesheet" />
+    <link href="{% static 'store/css/header-styles.css' %}" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet" />
+
+    <style>
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        padding: 2rem 5rem;
+      }
+      
+      .product-card {
+        background-color: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        transition: box-shadow 0.2s ease;
+        position: relative;
+      }
+      
+      .product-card:hover {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+      
+      .product-image-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+      }
+      
+      .product-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 0.8rem;
+      }
+      
+      .heart-icon {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        z-index: 2;
+        cursor: pointer;
+      }
+      
+      .heart-icon img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      
+      .product-card h4,
+      .product-card p,
+      .product-card strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      .product-card h4 {
+        font-size: 0.95rem;
+        color: #222;
+        margin-bottom: 0.3rem;
+      }
+      
+      .product-card p {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.4rem;
+      }
+      
+      .product-card strong {
+        font-size: 0.9rem;
+        color: #000;
+      }
+      
+      h2 {
+        padding: 1rem 5rem;
+        font-size: 1.5rem;
+      }
+      
+      @media (max-width: 500px) {
+        .product-image-wrapper {
+          aspect-ratio: 1 / 1;
+        }
+      
+        .heart-icon {
+          width: 20px;
+          height: 20px;
+          bottom: 6px;
+          right: 6px;
+        }
+      
+        .product-card h4 {
+          font-size: 0.8rem;
+        }
+      
+        .product-card p,
+        .product-card strong {
+          font-size: 0.75rem;
+        }
+      }
+      
+      .footer {
+        background-color: #1e1e1e;
+        color: #fff;
+        text-align: center;
+        padding: 1rem 0;
+        font-size: 0.75rem;
+        margin-top: 3rem;
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="{% url 'index' %}" class="nav-logo"><img src="{% static 'store/img/mainlogo.png' %}" alt="mukamuka" /></a>
+      <div class="nav-icons">
+        <div class="search-box">
+          <input type="text" placeholder="" />
+          <img src="{% static 'store/img/search-icon.png' %}" alt="검색" />
+        </div>
+        <a href="{% url 'wishlist_page' %}"><img src="{% static 'store/img/like.png' %}" alt="Like" /></a>
+        <a href="#"><img src="{% static 'store/img/cart.png' %}" alt="Cart" /></a>
+
+        {% if user.is_authenticated %}
+          <div class="user-dropdown">
+            <img src="{% static 'store/img/user.png' %}" alt="User" class="user-icon" id="userIcon" />
+            <div class="dropdown-content" id="dropdownContent">
+              <p>{{ user.first_name }}님</p>
+              <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit">로그아웃</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}"><img src="{% static 'store/img/user.png' %}" alt="User" /></a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <h2>전체 상품 목록</h2>
+    <div class="product-grid">
+      {% for product in products %}
+        <div class="product-card">
+          <div class="product-image-wrapper">
+            <a href="{% url 'product_detail' product.id %}"><img src="{{ product.image.url }}" alt="{{ product.name }}" /></a>
+            <div class="heart-icon" data-product-id="{{ product.id }}">
+              {% if user.is_authenticated and product.id in user_wishlist %}
+                <img src="{% static 'store/img/wish-full.png' %}" class="heart-img" />
+              {% else %}
+                <img src="{% static 'store/img/like.png' %}" class="heart-img" />
+              {% endif %}
+            </div>
+          </div>
+          <a href="{% url 'product_detail' product.id %}">
+            <h4>{{ product.name|truncatechars:30 }}</h4>
+            <p>{{ product.creator }}</p>
+            <strong>{{ product.price|floatformat:0 }}원</strong>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const icon = document.getElementById('userIcon')
+        const dropdown = document.getElementById('dropdownContent')
+      
+        if (icon && dropdown) {
+          icon.addEventListener('click', function (event) {
+            event.stopPropagation()
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block'
+          })
+      
+          document.addEventListener('click', function () {
+            dropdown.style.display = 'none'
+          })
+      
+          dropdown.addEventListener('click', function (event) {
+            event.stopPropagation()
+          })
+        }
+      })
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        const hearts = document.querySelectorAll('.heart-icon')
+      
+        hearts.forEach((icon) => {
+          icon.addEventListener('click', async (event) => {
+            event.preventDefault()
+      
+            const productId = icon.dataset.productId
+            const img = icon.querySelector('img')
+      
+            const isLoggedIn = "{{ user.is_authenticated|yesno:'true,false' }}" === 'true'
+            if (!isLoggedIn) {
+              window.location.href = "{% url 'login' %}?next={{ request.path }}"
+              return
+            }
+      
+            const isFilled = img.src.includes('wish-full.png')
+            const url = isFilled ? `/wishlist/remove/${productId}/` : `/wishlist/add/${productId}/`
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+      
+            try {
+              await fetch(url, {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': csrftoken
+                }
+              })
+      
+              img.src = isFilled ? "{% static 'store/img/like.png' %}" : "{% static 'store/img/wish-full.png' %}"
+            } catch (error) {
+              console.error('찜 요청 실패', error)
+            }
+          })
+        })
+      })
+    </script>
+
+    <footer class="footer">
+      <p>© 2025 mukamuka. ALL RIGHTS RESERVED.</p>
+    </footer>
+  </body>
+</html>

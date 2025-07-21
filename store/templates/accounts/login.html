@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 | mukamuka</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="{% static 'store/img/icon.png' %}" type="image/png">    
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    body {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    a {
+  text-decoration: none;
+  color: inherit;
+}
+    .left {
+      width: 50%;
+      padding: 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .right {
+      width: 50%;
+      background: url("/static/img/login-right.png") no-repeat center/cover;
+    }
+    .logo {
+      margin-bottom: 2rem;
+    }
+    .logo img {
+      height: 40px;
+    }
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #eaeaea;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      color: #777;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+    .find-links, .sns-login, .signup {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 2rem;
+    }
+    .sns-login{
+      margin-bottom: 10rem;
+    }
+    .sns-icons {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      margin-top: 1rem;
+    }
+    .sns-icons img {
+      background-attachment: fixed;
+      width: 100%%;
+      height: 40px;
+      cursor: pointer;
+      
+    }
+    .highlight {
+      font-weight: bold;
+      color: #222;
+    }
+    @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .left, .right {
+    width: 100%;
+    padding: 2rem;
+  }
+
+  .right img {
+    width: 100%;
+    height: 80%;
+    max-width: 100vw; /* 화면 너비 안 넘게 */
+  }
+
+  input,
+  .login-btn {
+    max-width: 100%;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="left">
+  <div class="logo">
+    <a href="/">
+      <img src="/static/store/img/mainlogo.png" alt="mukamuka 로고">
+    </a>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+    <input type="text" name="username" placeholder="아이디를 입력해 주세요." required>
+    <input type="password" name="password" placeholder="비밀번호를 입력해 주세요." required>
+    <button type="submit" class="login-btn">로그인하기</button>
+  </form>
+
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+
+  <div class="find-links">
+    <a href="#">이메일(아이디) 찾기</a> · <a href="#">비밀번호 재설정</a>
+  </div>
+
+  <div class="sns-login">
+    <p>SNS 계정으로 로그인하기</p>
+    <div class="sns-icons">
+      <a href="https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=06e4266f5d2a8de1abf8488c33c8b88b&redirect_uri=http://43.200.176.71:8000/accounts/kakao/callback">
+        <img src="/static/store/img/kakao_login_medium.png" alt="카카오로 로그인">
+      </a>
+      <a href="{% url 'naver_login' %}">
+        <img src="/static/store/img/naver_login.png" alt="네이버 로그인">
+      </a>
+      </div>
+  </div>
+
+  <div class="signup">
+    <p>아직 회원이 아니신가요? <a href="{% url 'signup' %}" class="highlight">회원가입하기</a></p>
+  </div>
+</div>
+  <div class="right">
+    <img src="/static/store/img/login-i.png" alt="mukamuka login">
+  </div>
+</body>
+</html>

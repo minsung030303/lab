@@ -1,0 +1,354 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>mukamuka</title>
+    <link rel="icon" href="{% static 'store/img/icon.png' %}" type="image/png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSS/JS -->
+    <link href="{% static 'store/css/index-styles.css' %}" rel="stylesheet" />
+    <link href="{% static 'store/css/header-styles.css' %}" rel="stylesheet" />
+    <script src="{% static 'store/js/scripts.js' %}"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      .product-card img {
+        width: 100%;
+        border-radius: 12px;
+        transition: transform 0.2s ease;
+      }
+      
+      .product-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr); /* 무조건 5개 정렬 */
+        gap: 1.5rem;
+        padding: 0 5rem 2rem;
+        max-width: 1400px; /* 딱 5개 꽉 차게 */
+        margin: 0 auto;
+        justify-items: center;
+      }
+      
+      .product-card {
+        position: relative;
+        max-width: 220px;
+        width: 100%;
+        background-color: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        text-align: center;
+        overflow: hidden;
+        padding: 1rem;
+        transition: box-shadow 0.3s ease;
+      }
+      
+      .product-card:hover {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+      
+      .heart-icon {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        z-index: 2;
+        cursor: pointer;
+      }
+      
+      .heart-icon img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      
+      .product-card img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 0.8rem;
+        transition: transform 0.2s ease;
+      }
+      
+      .product-card h4,
+      .product-card p,
+      .product-card strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      .product-card h4 {
+        font-size: 0.95rem;
+        color: #222;
+        margin-bottom: 0.3rem;
+      }
+      
+      .product-card p {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.4rem;
+      }
+      
+      .product-card strong {
+        font-size: 0.9rem;
+        color: #000;
+      }
+      
+      .product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 5rem 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      
+      .product-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+      
+      .more-button-inline {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        transition: background-color 0.2s, color 0.2s;
+      }
+      
+      .more-button-inline:hover {
+        background-color: #f2f2f2;
+        color: #000;
+      }
+      
+      .product-image-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+      }
+      
+      .product-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+      }
+      
+      .footer {
+        background-color: #1e1e1e;
+        color: #fff;
+        text-align: center;
+        padding: 1rem 0;
+        font-size: 0.75rem;
+        margin-top: 3rem;
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+
+    <nav class="navbar">
+      <a href="{% url 'index' %}" class="nav-logo"><img src="{% static 'store/img/mainlogo.png' %}" alt="mukamuka" /></a>
+      <div class="nav-icons">
+        <div class="search-box">
+          <input type="text" placeholder="" />
+          <img src="{% static 'store/img/search-icon.png' %}" alt="검색" />
+        </div>
+        <a href="{% url 'wishlist_page' %}"><img src="{% static 'store/img/like.png' %}" alt="Like" /></a>
+        <a href="#"><img src="{% static 'store/img/cart.png' %}" alt="Cart" /></a>
+
+        {% if user.is_authenticated %}
+          <div class="user-dropdown">
+            <img src="{% static 'store/img/user.png' %}" alt="User" class="user-icon" id="userIcon" />
+            <div class="dropdown-content" id="dropdownContent">
+              <p>{{ user.first_name }}님</p>
+              <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit">로그아웃</button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}"><img src="{% static 'store/img/user.png' %}" alt="User" /></a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <!-- 📦 메인 배너 영역 -->
+    <section class="main-banner">
+      <div class="banner-track" id="bannerTrack">
+        <!-- ✅ 슬라이드 트랙 추가됨 -->
+        <div class="banner-card">
+          <a href="https://ttabbaemall.co.kr/product/detail.html?product_no=5152&cate_no=339&display_group=1"><img src="{% static 'store/img/banner1.png' %}" alt="Banner 1" /></a>
+          <div class="banner-text">
+            <h3>공명자 테마 CG 엽서 세트</h3>
+            <p>#명조 얽힌 별의 추억 시리즈</p>
+          </div>
+        </div>
+        <div class="banner-card">
+          <a href="https://ttabbaemall.co.kr/product/detail.html?product_no=5420&cate_no=339&display_group=1"><img src="{% static 'store/img/banner2.png' %}" alt="Banner 2" /></a>
+          <div class="banner-text">
+            <h3>예약판매! 초대장 세트</h3>
+            <p>#명조 카를로타의 무도회 초대 시리즈</p>
+          </div>
+        </div>
+        <div class="banner-card">
+          <a href="#"><img src="{% static 'store/img/banner3.png' %}" alt="Banner 3" /></a>
+          <div class="banner-text">
+            <h3>굿즈 OPEN!</h3>
+            <p>#명조 공명자 시리즈 각성 칸타렐라 아크릴 색지</p>
+          </div>
+        </div>
+        <div class="banner-card">
+          <a href="#"><img src="{% static 'store/img/banner4.png' %}" alt="Banner 4" /></a>
+          <div class="banner-text">
+            <h3>한정수량!</h3>
+            <p>#명조 공명자 코스튬 시리즈 복숭아꽃이 피는 날</p>
+          </div>
+        </div>
+        <div class="banner-card">
+          <a href="#"><img src="{% static 'store/img/banner5.png' %}" alt="Banner 5" /></a>
+          <div class="banner-text">
+            <h3>파수인 RGB 마우스패드</h3>
+            <p>#명조공명자테마</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 🧃 카테고리 버튼 -->
+    <section class="category-buttons">
+      <a href="https://aniplustv.com/storeCollaboCafe?i=89" target="_blank" rel="noopener noreferrer">
+        <div class="category-btn">
+          <img src="{% static 'store/img/hololive.jpg' %}" alt="" /><p>hololive</p>
+        </div>
+      </a>
+      <a href="https://aniplustv.com/storeCollaboCafe?i=89" target="_blank" rel="noopener noreferrer">
+        <div class="category-btn">
+          <img src="{% static 'store/img/sfy.jpg' %}" alt="" /><p>SPY×FAMILY</p>
+        </div>
+      </a>
+      <a href="https://aniplustv.com/storeCollaboCafe?i=89" target="_blank" rel="noopener noreferrer">
+        <div class="category-btn">
+          <img src="{% static 'store/img/rezero.jpg' %}" alt="" /><p>Re:제로부터 시작하는 이세계 생활</p>
+        </div>
+      </a>
+      <a href="https://www.popply.co.kr/popup/1473" target="_blank" rel="noopener noreferrer">
+        <div class="category-btn">
+          <img src="{% static 'store/img/sakura.jpg' %}" alt="" /><p>카드캡터 사쿠라</p>
+        </div>
+      </a>
+      <a href="https://aniplustv.com/storeCollaboCafe?i=89" target="_blank" rel="noopener noreferrer">
+        <div class="category-btn">
+          <img src="{% static 'store/img/sekai.jpg' %}" alt="" /><p>프로젝트 세카이 컬러풀 스테이지!</p>
+        </div>
+      </a>
+      <a href="https://www.popply.co.kr/popup/3609" target="_blank" rel="noopener noreferrer">
+        <div class="category-btn">
+          <img src="{% static 'store/img/conan.jpg' %}" alt="" /><p>명탐정 코난</p>
+        </div>
+      </a>
+    </section>
+
+    <!-- 전체 상품 -->
+    <div class="product-header">
+      <h2>추천 상품</h2>
+      <a href="{% url 'product_list' %}" class="more-button-inline">전체 상품 더보기</a>
+    </div>
+
+    <div class="product-preview-grid">
+      {% for product in products %}
+        <div class="product-card">
+          <div class="product-image-wrapper">
+            <a href="{% url 'product_detail' product.id %}"><img src="{{ product.image.url }}" alt="{{ product.name }}" /></a>
+            <!-- 찜 버튼 -->
+            <div class="heart-icon" data-product-id="{{ product.id }}">
+              {% if user.is_authenticated and product.id in user_wishlist %}
+                <img src="{% static 'store/img/wish-full.png' %}" class="heart-img" />
+              {% else %}
+                <img src="{% static 'store/img/like.png' %}" class="heart-img" />
+              {% endif %}
+            </div>
+          </div>
+
+          <a href="{% url 'product_detail' product.id %}">
+            <h4>{{ product.name|truncatechars:30 }}</h4>
+            <p>{{ product.creator }}</p>
+            <strong>{{ product.price|floatformat:0 }}원</strong>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <footer class="footer">
+      <p>© 2025 mukamuka. ALL RIGHTS RESERVED.</p>
+    </footer>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const icon = document.getElementById('userIcon')
+        const dropdown = document.getElementById('dropdownContent')
+      
+        if (icon && dropdown) {
+          icon.addEventListener('click', function (event) {
+            event.stopPropagation()
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block'
+          })
+      
+          document.addEventListener('click', function () {
+            dropdown.style.display = 'none'
+          })
+      
+          dropdown.addEventListener('click', function (event) {
+            event.stopPropagation()
+          })
+        }
+      })
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        const hearts = document.querySelectorAll('.heart-icon')
+      
+        hearts.forEach((icon) => {
+          icon.addEventListener('click', async (event) => {
+            event.preventDefault() // 링크 클릭 방지
+      
+            const productId = icon.dataset.productId
+            const img = icon.querySelector('img')
+      
+            const isLoggedIn = "{{ user.is_authenticated|yesno:'true,false' }}" === 'true'
+      
+            if (!isLoggedIn) {
+              window.location.href = "{% url 'login' %}?next={{ request.path }}"
+              return
+            }
+      
+            const isFilled = img.src.includes('wish-full.png')
+            const url = isFilled ? `/wishlist/remove/${productId}/` : `/wishlist/add/${productId}/`
+      
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+      
+            try {
+              await fetch(url, {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': csrftoken
+                }
+              })
+      
+              img.src = isFilled ? "{% static 'store/img/like.png' %}" : "{% static 'store/img/wish-full.png' %}"
+            } catch (error) {
+              console.error('찜 요청 실패', error)
+            }
+          })
+        })
+      })
+    </script>
+  </body>
+</html>
